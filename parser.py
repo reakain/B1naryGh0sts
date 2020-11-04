@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+#import nltk
+#nltk.download('wordnet')
+#from senti_classifier import senti_classifier
 
 '''
 Word/sentence parsers for determining the power and emotion of words and statements

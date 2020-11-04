@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import Ghost from ghost
+from emotions import Emotion
 import random
+import numpy as np
 
 '''
 Handles global state, reading and writing of the story, and definition of each ghost.
@@ -21,7 +23,7 @@ if __name__ == "__main__":
     ghosties = []
     for i in range(NUM_GHOSTS):
         # Pick an emotion for the ghostie
-        emotion = 0
+        emotion = np.randchoice(Emotion)
         ghosties.append(Ghost(emotion))
     
     timestep = 0
