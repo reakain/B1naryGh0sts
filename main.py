@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import Ghost from ghost
+from ghost import Ghost
 from emotions import Emotion
 import random
 import numpy as np
@@ -13,7 +13,6 @@ STORY = './story.txt'
 
 if __name__ == "__main__":
     import sys
-    global STORY, NUM_GHOSTS
 
     # Get the story file
     if len(sys.argv) > 1:
@@ -23,7 +22,7 @@ if __name__ == "__main__":
     ghosties = []
     for i in range(NUM_GHOSTS):
         # Pick an emotion for the ghostie
-        emotion = np.randchoice(Emotion)
+        emotion = random.choice(list(Emotion))
         ghosties.append(Ghost(emotion))
     
     timestep = 0

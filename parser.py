@@ -2,6 +2,7 @@
 #import nltk
 #nltk.download('wordnet')
 #from senti_classifier import senti_classifier
+#from textblob import TextBlob
 
 '''
 Word/sentence parsers for determining the power and emotion of words and statements
