@@ -5,7 +5,7 @@ import random
 import numpy as np
 from textblob import TextBlob
 
-def main(STORY = './story.txt'):
+def main(STORY = './nano2010.txt'):
     '''
     Handles global state, reading and writing of the story, and definition of each ghost.
     '''
@@ -27,7 +27,8 @@ def main(STORY = './story.txt'):
     while not all_finished:
         all_finished = True
         for ghosty in ghosties:
-            text_blob_object, status = ghosty.read(text_blob_object,timestep)
+            new_blob, status = ghosty.read(text_blob_object,timestep)
+            text_blob_object = TextBlob(new_blob)
             if status is not 'DONE':
                 all_finished = False
         timestep += 1

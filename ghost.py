@@ -50,21 +50,36 @@ class Ghost:
         # Check that the start word isn't greater than the number of sentences
         # if it is then you're done
         if(len(story.sentences) < start_sentence):
-            return story, 'DONE'
+            return str(story), 'DONE'
 
+        new_story = ""
+        for i in range(start_sentence):
+            new_story += str(story.sentences[i]) + " "
         # otherwise start reading until either the story is over or you've read your read rate
         # Get chunk starting at start_word and read
         for i in range(start_sentence, start_sentence + self.read_rate):
             if(i < len(story.sentences)):
-                story.sentences[i] = self.parse_sentence(story.sentences[i])
+                #print("------------")
+                #print("Original Sentence: " + str(story.sentences[i]))
+                new_sentence = self.parse_sentence(story.sentences[i])
+                story.sentences[i] = new_sentence
+                new_story += str(new_sentence) + " "
+                #if(str(new_sentence) != str(story.sentences[i])):
+                    #print("------------")
+                    #print("String mismatch", flush=True)
+                #print("New Sentence: " + str(story.sentences[i]), flush=True)
+        
+        if(start_sentence + self.read_rate<len(story.sentences)):
+            for i in range(start_sentence + self.read_rate, len(story.sentences)):
+                new_story +=str(story.sentences[i]) + " "
 
         #self.write(story, story.text)
 
         # If still reading, return READING, otherwise, return DONE
         if(start_sentence + self.read_rate >= len(story.sentences)):
-            return story, 'DONE'
+            return new_story, 'DONE'
         else:
-            return story, 'READING'
+            return new_story, 'READING'
 
     def parse_sentence(self, sentence):
         emotion_analysis = te.get_emotion(str(sentence))
@@ -104,9 +119,6 @@ class Ghost:
             
             test_sentence = self.markov_blob.make_short_sentence(len(str(sentence)))
             if(test_sentence != None):
-                print("------------")
-                print("Original Sentence: " + str(sentence))
-                print("Test Sentence: " + test_sentence, flush=True)
                 emotion_analysis = te.get_emotion(test_sentence)
                 if(emotion_analysis[self.opposite] < emotion_analysis[self.feeling]):
                     new_blob = TextBlob(test_sentence)
