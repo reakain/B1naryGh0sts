@@ -50,7 +50,7 @@ class Ghost:
         # Check that the start word isn't greater than the number of sentences
         # if it is then you're done
         if(len(story.sentences) < start_sentence):
-            return 'DONE'
+            return story, 'DONE'
 
         # otherwise start reading until either the story is over or you've read your read rate
         # Get chunk starting at start_word and read
