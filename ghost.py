@@ -3,8 +3,9 @@ import random
 import numpy as np
 from emotions import Emotion
 from textblob import TextBlob
-from word import Word
+from word import Word, Words
 import text2emotion as te
+import markovify
 
 '''
 Ghost class definition, includes the ghost emotion, ghost antithetical emotion, the ghost's current collection of words, and handling of ghost choices
@@ -17,23 +18,25 @@ class Ghost:
         self.opposite = random.choice(emotion_list)
         self.read_rate = random.randint(1,10) # number of sentences to read
         #self.current_power = random.randint(0,30) # starting power?
-        self.words = []
+        self.sentences = []
+        self.words = Words(self.feeling, self.opposite)
+        self.markov_blob = None
 
-    def get_power_words(self):
-        new_set = []
-        for word in self.words:
-            if word.type == "Power": 
-                new_set.append(word)
-        return new_set
+    # def get_power_words(self):
+    #     new_set = []
+    #     for word in self.words:
+    #         if word.type == "Power": 
+    #             new_set.append(word)
+    #     return new_set
 
-    def get_opposite_words(self):
-        return np.select([self.words.type == "Obstacle"],self.words)
+    # def get_opposite_words(self):
+    #     return np.select([self.words.type == "Obstacle"],self.words)
 
-    def get_other_words(self):
-        return np.select([self.words.type == "Null"], self.words)
+    # def get_other_words(self):
+    #     return np.select([self.words.type == "Null"], self.words)
 
-    def get_power(self):
-        return np.sum(self.get_power_words().power)
+    # def get_power(self):
+    #     return np.sum(self.get_power_words().power)
 
     def read(self,story,timestep):
         # Get the story text
@@ -59,9 +62,9 @@ class Ghost:
 
         # If still reading, return READING, otherwise, return DONE
         if(start_sentence + self.read_rate >= len(story.sentences)):
-            return 'DONE'
+            return story, 'DONE'
         else:
-            return 'READING'
+            return story, 'READING'
 
     def parse_sentence(self, sentence):
         emotion_analysis = te.get_emotion(str(sentence))
@@ -70,8 +73,12 @@ class Ghost:
             sentence = self.rewrite(sentence) 
         elif emotion_analysis[self.feeling] > emotion_analysis[self.opposite]:
             # Take its words
+            #self.words_markov = markovify.combine([self.words_markov,markovify.Text(str(sentence))],[1,1])
+            self.sentences.append(str(sentence))
+            self.markov_blob = markovify.Text(self.sentences)
             for word in sentence.words:
-                self.words.append(Word(word,te.get_emotion(word),self.feeling,self.opposite))
+                #self.words.append(Word(word,te.get_emotion(word),self.feeling,self.opposite))
+                self.words.add_word(word)
 
         #for word in word_bag:
             #if word == self.SCREAM:
@@ -80,35 +87,60 @@ class Ghost:
         return sentence
 
     def rewrite(self, sentence):
+        if(self.markov_blob == None):
+            return sentence
         emotion_analysis = te.get_emotion(str(sentence))
         #b.sentence = 
-        used_words = []
-        words_to_use = self.get_power_words().copy()
-        no_power = False
-        while emotion_analysis[self.opposite] >= emotion_analysis[self.feeling] and not no_power:
+        #used_words = []
+        #words_to_use = self.get_power_words().copy()
+        #no_power = False
+
+        i = 0
+        #while emotion_analysis[self.opposite] >= emotion_analysis[self.feeling] and not no_power:
+        while emotion_analysis[self.opposite] >= emotion_analysis[self.feeling] and i < 5:
             used_words = []
-            words_to_use = self.get_power_words().copy()
+            #words_to_use = self.get_power_words().copy()
             # Change the sentence
+            
+            test_sentence = self.markov_blob.make_short_sentence(len(str(sentence)))
+            if(test_sentence != None):
+                print("------------")
+                print("Original Sentence: " + str(sentence))
+                print("Test Sentence: " + test_sentence, flush=True)
+                emotion_analysis = te.get_emotion(test_sentence)
+                if(emotion_analysis[self.opposite] < emotion_analysis[self.feeling]):
+                    new_blob = TextBlob(test_sentence)
+                    if(self.words.has_words(new_blob.sentences[0].words)):
+                        sentence = new_blob.sentences[0]
+                        self.words.remove_words(new_blob.sentences[0].words)
+                        i = 5
+            else:
+                i = 5
+
+            i += 1
             # Remove negative words? Find markovify fits for good words?
             # Tell it to just change words until it gets a good score set?
-            for word in sentence.words:
-                pos, neg = self.parse_word(word)
-                if(neg > pos):
-                    if len(words_to_use) > 0:
-                        new = random.choice(words_to_use)
-                        words_to_use.remove(new)
-                        used_words.append(new)
-                        word = new
-                if len(words_to_use) < 1:
-                    no_power = True
-                    used_words = []
-                    break
-            emotion_analysis = te.get_emotion(str(sentence))
+            # for word in sentence.words:
+            #     pos, neg = self.parse_word(word)
+            #     if(neg > pos):
+            #         if len(words_to_use) > 0:
+            #             new = random.choice(words_to_use)
+            #             words_to_use.remove(new)
+            #             used_words.append(new)
+            #             word = new
+            #     if len(words_to_use) < 1:
+            #         no_power = True
+            #         used_words = []
+            #         break
+            #emotion_analysis = te.get_emotion(str(sentence))
+
+
+        #if(i < 5 or (emotion_analysis[self.opposite] < emotion_analysis[self.feeling])):
 
 
         # Remove all the words we used
-        for word in used_words:
-            self.words.remove(word)
+        #for word in used_words:
+        #    self.words.remove(word)
 
         return sentence
 

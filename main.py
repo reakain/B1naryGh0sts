@@ -13,6 +13,7 @@ def main(STORY = './story.txt'):
 
     f = open(STORY, "r")
     text_blob_object = TextBlob(f.read())
+    
     f.close()
 
     # Create a bunch of ghosties
@@ -26,7 +27,7 @@ def main(STORY = './story.txt'):
     while not all_finished:
         all_finished = True
         for ghosty in ghosties:
-            status = ghosty.read(text_blob_object,timestep)
+            text_blob_object, status = ghosty.read(text_blob_object,timestep)
             if status is not 'DONE':
                 all_finished = False
         timestep += 1
